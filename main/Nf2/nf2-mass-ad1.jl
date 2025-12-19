@@ -48,7 +48,7 @@ function parse_commandline(args)
         # default = "configs/"
         
         "--wdir"
-        help "path where to save data"
+        help = "path where to save data"
         required = true
         arg_type = String
     end
