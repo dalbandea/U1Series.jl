@@ -46,6 +46,11 @@ function parse_commandline(args)
         required = true
         arg_type = String
         # default = "configs/"
+        
+        "--wdir"
+        help "path where to save data"
+        required = true
+        arg_type = String
     end
     return parse_args(args, s)
 end
@@ -69,6 +74,8 @@ const NDER = parsed_args["nder"]
 
 cfile = parsed_args["ens"]
 isfile(cfile) || error("Path provided is not a file")
+wdir = parsed_args["wdir"]
+isdir(wdir) || error("wdir $wdir does not exist")
 
 start = parsed_args["start"]
 ncfgs = parsed_args["nconf"]
@@ -131,7 +138,7 @@ end
 
 
 function save_data(data, dirpath, cnfg)
-    fname = joinpath(dirpath,"measurements/2pt-stoc-conn-disc_n$cnfg.h5")
+    fname = joinpath(dirpath,"2pt-stoc-conn-disc_n$cnfg.h5")
     fid = h5open(fname, "w")
     write(fid, "connected", series_stack(data.P))
     write(fid, "disconnected", series_stack(data.disc))
@@ -166,7 +173,7 @@ model_s = U1Nf2(Float64,
                 BC = model.params.BC,
                )
 
-pws = U1Correlator(model_s, wdir=dirname(cfile))
+pws = U1Correlator(model_s, wdir=wdir)
 
 for i in ProgressBar(start:finish)
     if i == start && start != 1
@@ -176,6 +183,6 @@ for i in ProgressBar(start:finish)
     end
     correlators(data, pws, model_s, NSRC)
     compute_disconnected!(data, NSRC)
-    save_data(data, dirname(cfile), i)
+    save_data(data, wdir, i)
 end
 close(fb)
