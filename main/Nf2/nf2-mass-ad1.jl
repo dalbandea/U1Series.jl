@@ -138,7 +138,7 @@ end
 
 
 function save_data(data, dirpath, cnfg)
-    fname = joinpath(dirpath,"2pt-stoc-conn-disc_n$cnfg.h5")
+    fname = joinpath(dirpath,"measurements/2pt-stoc-conn-disc_n$cnfg.h5")
     fid = h5open(fname, "w")
     write(fid, "connected", series_stack(data.P))
     write(fid, "disconnected", series_stack(data.disc))
