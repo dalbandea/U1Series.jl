@@ -1,0 +1,12 @@
+name = "U1Series"
+uuid = "1a3c0a28-65e7-41c6-b90c-7f556927968c"
+authors = ["David Albandea PROX15-2 <albandeadavid@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+BDIO = "375f315e-f2c4-11e9-2ef9-134f02f79e27"
+EllipsisNotation = "da5c29d0-fa7d-589e-88eb-ea29b0a81949"
+FormalSeries = "a55ae9b5-0907-4af6-81ab-c6ed2f8e0777"
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+LFTSampling = "01beebb5-6b54-40b6-b312-fac6d2d10d07"
+LFTU1 = "c5346ad7-8abe-4d7d-905f-653b6e0abc8c"
