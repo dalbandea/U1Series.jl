@@ -135,7 +135,7 @@ for i in ProgressBar(start:finish)
         pws.S0[:,:,:] .= randn(ComplexF64, lp.iL[1], lp.iL[2] ,2)
         LFTU1.invert!(pws.S, LFTU1.gamm5Dw_sqr_msq_am0!(model_s.params.am0), pws.S0, model_s.sws, model_s)
         LFTU1.gamm5Dw_sqr_msq_am0!(model.params.am0)(model_s.sws.Ap, model_s.sws.tmp, pws.S, model)
-        Ws[i] = exp(-dot(pws.S0, model_s.sws.Ap) + dot(pws.S0, pws.S0))
+        Ws[j] = exp(-dot(pws.S0, model_s.sws.Ap) + dot(pws.S0, pws.S0))
     end
     save_data(Ws, wdir, i)
 end
