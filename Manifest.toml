@@ -835,7 +835,7 @@ version = "0.1.0"
 
 [[deps.LFTU1]]
 deps = ["ArgParse", "BDIO", "Dates", "Elliptic", "KernelAbstractions", "LFTSampling", "LinearAlgebra", "PrecompileTools", "Random", "Revise", "Test"]
-git-tree-sha1 = "8ce80c323b32c58073f64d9407047cb5fff65ed2"
+git-tree-sha1 = "8f64d70802b8d91dd7ed0d72ead82cad3a527540"
 repo-rev = "main"
 repo-url = "https://github.com/dalbandea/LFTU1.jl"
 uuid = "c5346ad7-8abe-4d7d-905f-653b6e0abc8c"
