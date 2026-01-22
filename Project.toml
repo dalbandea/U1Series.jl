@@ -4,10 +4,16 @@ authors = ["David Albandea PROX15-2 <albandeadavid@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+ADerrors = "5e92007d-7bf1-471c-8ceb-4591b8b567a9"
 BDIO = "375f315e-f2c4-11e9-2ef9-134f02f79e27"
 EllipsisNotation = "da5c29d0-fa7d-589e-88eb-ea29b0a81949"
 FormalSeries = "a55ae9b5-0907-4af6-81ab-c6ed2f8e0777"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LFTSampling = "01beebb5-6b54-40b6-b312-fac6d2d10d07"
 LFTU1 = "c5346ad7-8abe-4d7d-905f-653b6e0abc8c"
+LeastSquaresOptim = "0fc2ff8b-aaa3-5acd-a817-1944a5e08891"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
+[compat]
+Statistics = "1.11.1"
