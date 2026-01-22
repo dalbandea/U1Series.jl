@@ -1,0 +1,5 @@
+ - nf2-mass-ad1.jl: computes automatic RM123 in the (degenerate) mass for U1Nf2
+   using stochastic inversion of the Dirac operator
+
+ - nf2-mass-ad2.jl: computes automatic RM123 in the (degenerate) mass for U1Nf2
+   using exact inversion of the Dirac operator
