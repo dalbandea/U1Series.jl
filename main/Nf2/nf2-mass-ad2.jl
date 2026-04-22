@@ -181,6 +181,7 @@ for i in ProgressBar(start:finish)
     else
         read_next_cnfg(fb, model_s)
     end
+    construct_gD!(pws, model_s, model_s.params.am0) # TODO: needs to be tested
     correlators(data, pws, model_s)
     save_data(data, wdir, i)
 end

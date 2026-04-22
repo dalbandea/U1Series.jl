@@ -41,3 +41,7 @@ function series_unstack(arr::Array{T}) where T
     end
     return A
 end
+
+function series_stack(s::Series{T,N}) where {T,N}
+    return [(s.c)...]
+end

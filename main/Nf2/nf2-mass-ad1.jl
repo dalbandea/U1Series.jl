@@ -61,7 +61,8 @@ end
 # "--start", "2",
 # "--nconf", "10",
 # "--nsrc", "2",
-# "--nder", "1",
+# "--nder", "3",
+# "--wdir", "trash/",
 # ]
 # parsed_args = parse_commandline(args)
 
@@ -186,3 +187,18 @@ for i in ProgressBar(start:finish)
     save_data(data, wdir, i)
 end
 close(fb)
+
+
+# # Testing derivatives with nf2-mass-ad1.jl {{{
+# LFTSampling.read_cnfg_n(fb, 1, model_s)
+
+# import Random
+# Random.seed!(1234)
+# random_source(1,pws,model_s)
+
+# pws.R[1][1]
+# pws.R[2][end]
+#
+# Random.seed!(1234)
+# @time correlators(data, pws, model_s, NSRC)
+# # }}}
