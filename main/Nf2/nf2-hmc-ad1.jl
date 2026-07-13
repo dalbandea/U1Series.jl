@@ -41,7 +41,10 @@ end
 function create_simulation_directory(wdir::String, savename::String)
     configfile = joinpath(wdir, savename * ".bdio")
     mkpath(wdir)
-    cp(infile, joinpath(wdir, splitpath(infile)[end]), force = true)
+    dst = joinpath(wdir, basename(infile))
+    if abspath(infile) != abspath(dst)          # skip if the infile already lives in wdir
+        cp(infile, dst, force = true)
+    end
     return configfile
 end
 
