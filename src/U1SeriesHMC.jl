@@ -12,14 +12,8 @@
 import FormalSeries: Series
 import Random: randn
 import Base: real, convert
-import Base.*
 
 # ---- FormalSeries helpers -------------------------------------------------
-
-
-# # This is in my devved version of FormalSeries already
-Base.:*(s1::Series{T,N}, s2::Number) where {T,N} =
-genseries(Series{typeof(promote(s1[1], s2)[1]),N}, i -> s1.c[i]*s2)
 
 # scalar -> Series (value in the constant order, higher orders zero)
 FormalSeries.Series{T, N}(x::Tx) where {T, N, Tx <: Number} =

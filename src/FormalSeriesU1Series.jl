@@ -6,9 +6,14 @@ import Base: complex
 
 
 Base.complex(::Type{Series{T,N}}) where {T,N} = Series{complex(T),N}
-function Base.complex(s1::FormalSeries.Series, s2::FormalSeries.Series)
+# Build the complex series coefficient-by-coefficient. Constructing it directly
+# (rather than `s1 + im*s2`) avoids relying on coefficient-type-promoting Series
+# arithmetic, which the registered FormalSeries does not provide (it would hit
+# `Series{Float64} + Series{ComplexF64}` / `im * Series{Float64}`).
+function Base.complex(s1::FormalSeries.Series{T1,N}, s2::FormalSeries.Series{T2,N}) where {T1,T2,N}
     (isreal(s1) && isreal(s2)) || error("Inputs $s1 or $s2 are already complex")
-    return s1 + im*s2
+    RT = complex(promote_type(real(T1), real(T2)))
+    return Series{RT,N}(ntuple(i -> RT(complex(real(s1.c[i]), real(s2.c[i]))), N))
 end
 Base.complex(s1::FormalSeries.Series{T,N}) where {T,N} = Series{complex(T),N}(ntuple(i -> complex(s1.c[i]), N))
 
