@@ -1,0 +1,22 @@
+["Model params"]
+beta = 4.0
+mass = 0.02
+L = 24
+T = 24
+BC = 'PeriodicBC'
+device = "CPU"
+NDER = 1
+
+["HMC params"]
+tau = 1.0
+nsteps = 4
+ntherm = 10
+ntraj = 10
+discard = 0
+integrator = "OMF4"
+
+["Working directory"]
+wdir = "trash/"
+savename = "ensemble1"
+continue = true
+cntfile = "trash/ensemble1.bdio"
