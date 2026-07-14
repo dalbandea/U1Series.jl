@@ -1,0 +1,24 @@
+["Model params"]
+beta = 4.0
+mass = 0.02
+L = 24
+T = 24
+BC = 'PeriodicBC'
+device = "CPU"
+NDER = 1
+
+["SMD params"]
+tau = 1.0
+nsteps = 4
+gamma = 4.0
+lambda0 = 1.0
+ntherm = 10
+ntraj = 10
+discard = 0
+integrator = "OMF4"
+
+["Working directory"]
+wdir = "trash/"
+savename = "smdgd1"
+continue = false
+cntfile = "trash/smdgd1.bdio"
