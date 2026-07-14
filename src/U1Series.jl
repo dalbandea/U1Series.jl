@@ -25,6 +25,8 @@ include("U1SeriesHMC.jl")
 
 include("U1SeriesSMD.jl")
 
+include("U1SeriesGaugeDamping.jl")
+
 include("ADerrorsSeries.jl")
 
 include("Fits.jl")
