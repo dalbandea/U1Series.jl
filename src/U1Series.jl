@@ -23,6 +23,8 @@ include("FormalSeriesU1Series.jl")
 
 include("U1SeriesHMC.jl")
 
+include("U1SeriesSMD.jl")
+
 include("ADerrorsSeries.jl")
 
 include("Fits.jl")
