@@ -15,4 +15,8 @@ using Random
         include("reproducibilitytests.jl")
     end
 
+    @testset verbose = true "Gauge damping" begin
+        include("gaugedampingtests.jl")
+    end
+
 end
