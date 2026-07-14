@@ -94,3 +94,81 @@ a1_gauged = a1norm(model_g)
     @test a1_plain  > 50                # plain SMD: longitudinal mode grows large
     @test a1_gauged < a1_plain / 10     # gauge damping: dramatically smaller
 end
+
+# --------------------------------------------------------------------------- #
+# OpenBC. The link + pseudofermion transformation is BC-independent, so the exact
+# gauge symmetry (action invariant at every order, U^(0) and unitarity fixed) must
+# hold under OpenBC too -- this checks the OpenBC code path. The only BC-specific
+# piece is the omega-update stencil: under OpenBC the wrap-around links are masked
+# out of the divergence, which we test directly below.
+# --------------------------------------------------------------------------- #
+
+Lo = 8
+
+am0_o = Series{ComplexF64, NS}(ntuple(
+    i -> i == 1 ? ComplexF64(0.1) : (i == 2 ? 1.0+0im : 0.0+0im), NS))
+
+model_o = U1Nf2(Float64, typeof(am0_o), beta = 4.0, am0 = am0_o, iL = (Lo, Lo), BC = OpenBC)
+
+Random.seed!(23)
+mo = U1Nf2(Float64, beta = 4.0, am0 = 0.1, iL = (Lo, Lo), BC = OpenBC)
+LFTU1.randomize!(mo)
+for i in eachindex(mo.U)
+    model_o.U[i] = Series{ComplexF64, NS}(ntuple(k -> k == 1 ? mo.U[i] : (0.2im * mo.U[i]) / k, NS))
+end
+
+gd_o = U1Nf2SMDgd(model_o, SMD(integrator = OMF4(1.0, 4), gamma = 4.0); lambda0 = 1.5)
+generate_pseudofermions!(model_o, gd_o.smd)
+
+So_before  = LFTU1.action(model_o, gd_o.smd.hmcws)
+U0o_before = [model_o.U[i].c[1] for i in eachindex(model_o.U)]
+
+gauge_damping!(model_o, gd_o, 0.25, exp(-1.0))
+
+So_after  = LFTU1.action(model_o, gd_o.smd.hmcws)
+U0o_after = [model_o.U[i].c[1] for i in eachindex(model_o.U)]
+
+dSo_orders = abs.(So_after.c .- So_before.c)
+U0o_inv    = maximum(abs.(U0o_after .- U0o_before))
+U0o_unit   = maximum(abs.(abs.(U0o_after) .- 1))
+
+@testset "OpenBC: gauge_damping! is an exact gauge symmetry" begin
+    @test maximum(dSo_orders) < 1e-8    # action invariant at every order (phi -> L phi)
+    @test U0o_inv  < 1e-12              # U^(0) left exactly fixed (Lambda^(0) = 1)
+    @test U0o_unit < 1e-12              # config stays on the U(1) circle
+end
+
+# The OpenBC omega update must ignore the wrap-around links (x-links at i1=Nx,
+# y-links at i2=Ny): two configs that differ ONLY on those links -- in their
+# derivative orders, U^(0) untouched -- must yield the *same* omega after one
+# damping step. Without the mask their (here deliberately large) derivatives would
+# leak into d*A.
+mkmodel_o() = U1Nf2(Float64, typeof(am0_o), beta = 4.0, am0 = am0_o, iL = (Lo, Lo), BC = OpenBC)
+model_a = mkmodel_o()
+model_b = mkmodel_o()
+
+Random.seed!(29)
+mbase = U1Nf2(Float64, beta = 4.0, am0 = 0.1, iL = (Lo, Lo), BC = OpenBC)
+LFTU1.randomize!(mbase)
+for i in eachindex(mbase.U)
+    s = Series{ComplexF64, NS}(ntuple(k -> k == 1 ? mbase.U[i] : (0.2im * mbase.U[i]) / k, NS))
+    model_a.U[i] = s
+    model_b.U[i] = s
+end
+
+# perturb ONLY the wrap-around links' derivative orders in model_b (U^(0) kept)
+bump(u) = Series{ComplexF64, NS}(ntuple(k -> k == 1 ? u.c[1] : (5.0im * u.c[1]) / k, NS))
+for i2 in 1:Lo; model_b.U[Lo, i2, 1] = bump(model_b.U[Lo, i2, 1]); end   # x-links at i1=Nx
+for i1 in 1:Lo; model_b.U[i1, Lo, 2] = bump(model_b.U[i1, Lo, 2]); end   # y-links at i2=Ny
+
+gd_a = U1Nf2SMDgd(model_a, SMD(integrator = OMF4(1.0, 4), gamma = 4.0); lambda0 = 1.5)
+gd_b = U1Nf2SMDgd(model_b, SMD(integrator = OMF4(1.0, 4), gamma = 4.0); lambda0 = 1.5)
+
+gauge_damping!(model_a, gd_a, 0.25, exp(-1.0))
+gauge_damping!(model_b, gd_b, 0.25, exp(-1.0))
+
+omega_diff = maximum(maximum(abs.(gd_a.omega[i].c .- gd_b.omega[i].c)) for i in eachindex(gd_a.omega))
+
+@testset "OpenBC: omega update ignores the wrap-around links" begin
+    @test omega_diff < 1e-12
+end

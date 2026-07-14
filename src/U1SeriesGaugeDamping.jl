@@ -25,7 +25,14 @@
 #   Lambda  = exp(i eps omega)                  (Lambda^(0) = 1)
 #   U_mu(x) = Lambda(x) U_mu(x) conj(Lambda(x+mu))
 #
-# Implemented for PeriodicBC (the d / d* stencils use circshift).
+# Boundary conditions.  The link + pseudofermion transformation above is an exact
+# gauge symmetry for *any* BC (every plaquette is individually gauge invariant),
+# so PeriodicBC and OpenBC share the whole transform.  The only BC-dependent piece
+# is the omega-update stencil (d* A): d* must be the adjoint of the *same* gradient
+# that appears in the action.  Under OpenBC LFTU1 zeroes the wrap-around plaquettes
+# (U1action.jl: i1==Nx or i2==Ny), so the wrap-around links (x-links at i1=Nx,
+# y-links at i2=Ny) carry no longitudinal mode; masking A on those links and reusing
+# the periodic circshift stencil yields exactly the open-lattice divergence.
 ####################################################################
 
 import LFTSampling: sample!, refresh_momenta!, molecular_dynamics!,
@@ -94,15 +101,27 @@ conj_series(g::Series{T, N}) where {T, N} = Series{T, N}(conj.(g.c))
 # ---- one gauge-damping step --------------------------------------------------
 
 function gauge_damping!(u1ws::LFTU1.U1Nf2, gd::U1Nf2SMDgd, eps, c1)
-    u1ws.params.BC == PeriodicBC ||
-        error("gauge_damping! is implemented for PeriodicBC only")
-    U     = u1ws.U
-    omega = gd.omega
+    BC = u1ws.params.BC
+    (BC == PeriodicBC || BC == OpenBC) ||
+        error("gauge_damping! is implemented for PeriodicBC and OpenBC only")
+    U      = u1ws.U
+    omega  = gd.omega
+    Nx, Ny = u1ws.params.iL
 
     # derivative gauge potential A_mu(x) (real Series, A^(0) = 0)
     A  = deriv_potential.(U)
     A1 = @view A[:, :, 1]
     A2 = @view A[:, :, 2]
+
+    # OpenBC: the wrap-around links (x-links at i1=Nx, y-links at i2=Ny) do not
+    # enter the action, so they carry no longitudinal mode. Zeroing A there drops
+    # them from *both* stencil terms below (the -A_mu(x) at the boundary and the
+    # circshift'd A_mu(x-mu) that would otherwise wrap onto it), giving exactly the
+    # open-lattice divergence. In the periodic case nothing is masked.
+    if BC == OpenBC
+        A1[Nx, :] .= zero(eltype(A1))
+        A2[:, Ny] .= zero(eltype(A2))
+    end
 
     # lattice divergence  (d* A)(x) = sum_mu [ A_mu(x-mu) - A_mu(x) ]
     dstarA = (circshift(A1, (1, 0)) .- A1) .+ (circshift(A2, (0, 1)) .- A2)
