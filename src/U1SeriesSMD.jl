@@ -15,7 +15,8 @@
 ####################################################################
 
 import LFTSampling: sampler, refresh_momenta!, update_momenta!, update_fields!,
-                    generate_momenta!, generate_pseudofermions!, sample!, smd!
+                    generate_momenta!, generate_pseudofermions!, sample!,
+                    molecular_dynamics!, Hamiltonian, metropolis_accept_reject!
 
 # SMD workspace: wraps a U1Nf2HMC so the force machinery is reused as-is.
 struct U1Nf2SMD{H <: LFTU1.U1Nf2HMC} <: AbstractSMD
@@ -57,11 +58,31 @@ function LFTSampling.refresh_momenta!(u1ws::LFTU1.U1Nf2, smdws::U1Nf2SMD, c1::Fl
     return nothing
 end
 
-# --- One SMD trajectory -------------------------------------------------------
-# The generic smd! only partially refreshes momenta; for a fermionic theory the
-# pseudofermions must be heatbath-refreshed each trajectory, so we do it here.
+# --- One SMD trajectory (standard SMD = GHMC) ---------------------------------
+# Same skeleton as HMC (hmc!), the only difference being a *partial* momentum
+# refresh (c1 = exp(-gamma*eps)) instead of a full one:
+#   heatbath pseudofermions -> partial refresh (once) -> MD trajectory ->
+#   dH = H_final - H_initial -> accept/reject.
+# The energy dH is exactly the quantity that enters the accept/reject, measured
+# at the two ends of the trajectory as in HMC. For a FormalSeries-valued model
+# the accept/reject is not differentiable and is skipped: the overridden
+# metropolis_accept_reject!(::U1, ::U1, ::Series) just @info's dH (as in the HMC
+# main file). On reject in the plain case a momentum flip should be added for
+# exact GHMC detailed balance; that is not the FormalSeries use case here.
 function LFTSampling.sample!(u1ws::LFTU1.U1Nf2, smdws::U1Nf2SMD)
+    ws_cp  = deepcopy(u1ws)
     generate_pseudofermions!(u1ws, smdws)
-    smd!(u1ws, smdws)
+
+    integr = smdws.params.integrator
+    c1     = exp(-smdws.params.gamma * integr.epsilon)
+
+    refresh_momenta!(u1ws, smdws, c1)                 # single partial refresh
+    Hini = Hamiltonian(u1ws, smdws.hmcws)
+    for _ in 1:integr.nsteps                          # MD trajectory, no mid refresh
+        molecular_dynamics!(u1ws, smdws)
+    end
+    dH = Hamiltonian(u1ws, smdws.hmcws) - Hini
+
+    metropolis_accept_reject!(u1ws, ws_cp, dH)
     return nothing
 end

@@ -47,6 +47,15 @@ function create_simulation_directory(wdir::String, savename::String)
     return configfile
 end
 
+# FormalSeries: the accept/reject is not differentiable, so it is skipped; just
+# report the (Series-valued) energy violation dH of the trajectory.
+import LFTSampling: metropolis_accept_reject!
+function LFTSampling.metropolis_accept_reject!(lftws::L, lftcp::L,
+                                               dS::FormalSeries.Series) where {L <: LFTU1.U1}
+    @info "dH = $dS"
+    return nothing
+end
+
 # ---------------------------------------------------------------------------
 # Read parameters
 # ---------------------------------------------------------------------------
